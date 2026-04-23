@@ -1,141 +1,43 @@
 <p align="center">
-  <img src="icon.svg" alt="Hello World Logo" width="21%">
+  <img src="icon.svg" alt="Next Block Logo" width="18%">
 </p>
 
-# Hello World on StartOS
+# Next Block on StartOS
 
-> **Upstream repo:** <https://github.com/Start9Labs/hello-world>
+> **Upstream repo:** <https://github.com/Dojo-Open-Source-Project/next-block>
+> **Upstream site:** <https://nextblock.st>
 
-A minimal reference service for StartOS. It displays a simple web page — nothing more. Use [this repository](https://github.com/Start9Labs/hello-world-startos) as a template when packaging a new service for StartOS.
+[Next Block](https://nextblock.st) is a Bitcoin fee estimator — the frontend of nextblock.st, self-hosted against your own Bitcoin Core node. It ingests mempool data via `@samouraiwallet/one-dollar-fee-estimator` and pushes Low / Medium / High fee rates plus latest-block details to the UI over Server-Sent Events.
 
-## Getting Started
+This package runs it on StartOS 0.4.0. Requires the Bitcoin Core service app (>= 28.0).
 
-To learn how to use this template to create your own StartOS service package, see the [Packaging Guide](https://docs.start9.com/packaging).
+## Architectures
 
----
+`x86_64`, `aarch64`.
 
-## Table of Contents
+## Build
 
-- [Image and Container Runtime](#image-and-container-runtime)
-- [Volume and Data Layout](#volume-and-data-layout)
-- [Installation and First-Run Flow](#installation-and-first-run-flow)
-- [Configuration Management](#configuration-management)
-- [Network Access and Interfaces](#network-access-and-interfaces)
-- [Actions (StartOS UI)](#actions-startos-ui)
-- [Backups and Restore](#backups-and-restore)
-- [Health Checks](#health-checks)
-- [Dependencies](#dependencies)
-- [Limitations and Differences](#limitations-and-differences)
-- [What Is Unchanged from Upstream](#what-is-unchanged-from-upstream)
-- [Contributing](#contributing)
-- [Quick Reference for AI Consumers](#quick-reference-for-ai-consumers)
+```sh
+# One-time: clone upstream into next-block-src/ (gitignored, used by the Dockerfile)
+git clone --depth 1 --branch develop \
+  https://github.com/Dojo-Open-Source-Project/next-block.git next-block-src
 
----
-
-## Image and Container Runtime
-
-| Property      | Value                                  |
-| ------------- | -------------------------------------- |
-| Image         | `ghcr.io/start9labs/hello-world`       |
-| Architectures | x86_64, aarch64, riscv64               |
-| Command       | `hello-world`                          |
-
----
-
-## Volume and Data Layout
-
-| Volume | Mount Point | Purpose         |
-| ------ | ----------- | --------------- |
-| `main` | `/data`     | Persistent data |
-
----
-
-## Installation and First-Run Flow
-
-No special setup. Install and start — the web page is immediately available.
-
----
-
-## Configuration Management
-
-No configurable settings. The service runs with no user-facing configuration.
-
----
-
-## Network Access and Interfaces
-
-| Interface | Port | Protocol | Purpose              |
-| --------- | ---- | -------- | -------------------- |
-| Web UI    | 80   | HTTP     | Hello World web page |
-
-**Access methods:**
-
-- LAN IP with unique port
-- `<hostname>.local` with unique port
-- Tor `.onion` address
-- Custom domains (if configured)
-
----
-
-## Actions (StartOS UI)
-
-None.
-
----
-
-## Backups and Restore
-
-**Included in backup:**
-
-- `main` volume
-
-**Restore behavior:** Volume is fully restored before the service starts.
-
----
-
-## Health Checks
-
-| Check         | Method              | Messages                                                           |
-| ------------- | ------------------- | ------------------------------------------------------------------ |
-| Web Interface | Port listening (80) | Success: "The web interface is ready" / Error: "The web interface is not ready" |
-
----
-
-## Dependencies
-
-None.
-
----
-
-## Limitations and Differences
-
-1. **No meaningful functionality** — this is a reference/template package only
-
----
-
-## What Is Unchanged from Upstream
-
-The service is identical to upstream. There are no modifications.
-
----
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for build instructions and development workflow.
-
----
-
-## Quick Reference for AI Consumers
-
-```yaml
-package_id: hello-world
-image: ghcr.io/start9labs/hello-world
-architectures: [x86_64, aarch64, riscv64]
-volumes:
-  main: /data
-ports:
-  ui: 80
-dependencies: none
-startos_managed_env_vars: none
-actions: none
+# Pack for a specific arch
+make x86_64       # or: make aarch64 / make arm
+make install      # requires start-cli + host in ~/.startos/config.yaml
 ```
+
+## Runtime notes
+
+- `docker_entrypoint.sh` reads `/mnt/bitcoind/.cookie`, parses `__cookie__:<rand>`, exports `BITCOIND_USERNAME` / `BITCOIND_PASSWORD`, materializes a transient `.env` (upstream `config.server.ts` reads via `dotenv` only, not `process.env`), then execs `node server.mjs`. Cookie rotation is handled for free.
+- `server.mjs` is `sed`-patched in the Dockerfile to bind on `0.0.0.0`. Upstream defaults leave Node listening only on the IPv6 loopback inside StartOS' netns-isolated subcontainer, which hangs StartOS' `checkPortListening` health check and locks the package in *loading*.
+- `main.ts` mounts `/mnt/bitcoind` read-only (we only need `.cookie`) and uses a 60s grace period to cover Node SSR + estimator init + first RPC handshake on slower hardware.
+
+## Related
+
+- `4rkad/next-block-umbrel` — Docker image build for the Umbrel variant.
+- `4rkad/umbrel-app-store` — Umbrel community app manifest under `4rkad-next-block/`.
+
+## License
+
+AGPL-3.0, matching upstream.
