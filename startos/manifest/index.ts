@@ -16,7 +16,7 @@ export const manifest = setupManifest({
   volumes: ['main'],
   images: {
     main: {
-      source: { dockerBuild: { dockerfile: './Dockerfile', context: '.' } },
+      source: { dockerBuild: { dockerfile: './Dockerfile' } },
       arch: ['x86_64', 'aarch64'],
     },
   },
