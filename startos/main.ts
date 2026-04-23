@@ -20,7 +20,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
         volumeId: 'main',
         subpath: null,
         mountpoint: btcMountpoint,
-        readonly: false,
+        readonly: true,
       }),
     'next-block-sub',
   )
@@ -29,7 +29,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
     subcontainer: sub,
     exec: { command: ['/usr/local/bin/docker_entrypoint.sh'] },
     ready: {
-      gracePeriod: 30_000,
+      gracePeriod: 60_000,
       display: i18n('Web Interface'),
       fn: () =>
         sdk.healthCheck.checkPortListening(effects, uiPort, {

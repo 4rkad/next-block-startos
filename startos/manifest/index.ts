@@ -5,7 +5,7 @@ export const manifest = setupManifest({
   id: 'next-block',
   title: 'Next Block',
   license: 'AGPL-3.0',
-  packageRepo: 'https://github.com/anon/next-block-startos',
+  packageRepo: 'https://github.com/4rkad/next-block-startos',
   upstreamRepo: 'https://github.com/Dojo-Open-Source-Project/next-block',
   marketingUrl: 'https://nextblock.st',
   donationUrl: null,

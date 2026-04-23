@@ -17,8 +17,16 @@ if [ ! -s "$COOKIE_PATH" ]; then
 fi
 
 COOKIE_CONTENT="$(cat "$COOKIE_PATH")"
+case "$COOKIE_CONTENT" in
+  *:*) ;;
+  *) echo "ERROR: bitcoind cookie at $COOKIE_PATH is malformed (no colon): $COOKIE_CONTENT" >&2; exit 1 ;;
+esac
 BITCOIND_USERNAME="${COOKIE_CONTENT%%:*}"
 BITCOIND_PASSWORD="${COOKIE_CONTENT#*:}"
+if [ -z "$BITCOIND_USERNAME" ] || [ -z "$BITCOIND_PASSWORD" ]; then
+  echo "ERROR: bitcoind cookie parsed to empty username/password" >&2
+  exit 1
+fi
 
 export BITCOIND_USERNAME
 export BITCOIND_PASSWORD
