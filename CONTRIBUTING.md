@@ -8,7 +8,7 @@ See the [StartOS Packaging Guide](https://docs.start9.com/packaging/) for comple
 
 ```bash
 # Install dependencies
-npm ci
+pnpm install --frozen-lockfile
 
 # Build universal package
 make
